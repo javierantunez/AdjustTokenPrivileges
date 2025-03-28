@@ -40,13 +40,13 @@ namespace AdjustTokenPrivs
             {
                 pid = int.Parse(args[0]);
                 Console.WriteLine($"Parameter PID is {pid}");
-                EnablePrivilege(pid);
+                EnablePrivilege(pid, null);
             }
                 
             
 
         }
-        public static void EnablePrivilege(int processId)
+        public static void EnablePrivilege(int processId, string[]? privs)
         {
             bool retVal;
             TokPriv1Luid tp;
@@ -55,7 +55,7 @@ namespace AdjustTokenPrivs
             
             
             IntPtr htok = IntPtr.Zero;
-            List<string> privs = new List<string>() {  "SeAssignPrimaryTokenPrivilege", "SeAuditPrivilege", "SeBackupPrivilege",
+            privs = privs ?? new string[] {"SeAssignPrimaryTokenPrivilege", "SeAuditPrivilege", "SeBackupPrivilege",
             "SeChangeNotifyPrivilege", "SeCreateGlobalPrivilege", "SeCreatePagefilePrivilege",
             "SeCreatePermanentPrivilege", "SeCreateSymbolicLinkPrivilege", "SeCreateTokenPrivilege",
             "SeDebugPrivilege", "SeEnableDelegationPrivilege", "SeImpersonatePrivilege", "SeIncreaseBasePriorityPrivilege",
@@ -65,7 +65,7 @@ namespace AdjustTokenPrivs
             "SeRestorePrivilege", "SeSecurityPrivilege", "SeShutdownPrivilege", "SeSyncAgentPrivilege",
             "SeSystemEnvironmentPrivilege", "SeSystemProfilePrivilege", "SeSystemtimePrivilege",
             "SeTakeOwnershipPrivilege", "SeTcbPrivilege", "SeTimeZonePrivilege", "SeTrustedCredManAccessPrivilege",
-            "SeUndockPrivilege", "SeUnsolicitedInputPrivilege", "SeDelegateSessionUserImpersonatePrivilege" };
+            "SeUndockPrivilege", "SeUnsolicitedInputPrivilege", "SeDelegateSessionUserImpersonatePrivilege"};
 
             retVal = OpenProcessToken(hproc, TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, ref htok);
             tp.Count = 1;
