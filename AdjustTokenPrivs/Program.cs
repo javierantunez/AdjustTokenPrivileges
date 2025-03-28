@@ -34,25 +34,28 @@ namespace AdjustTokenPrivs
             if (args == null || args.Length == 0)
             {
              Console.WriteLine("You must supply the PID!");
+             return;
             }
             // PID as parameter
             else
             {
                 pid = int.Parse(args[0]);
                 Console.WriteLine($"Parameter PID is {pid}");
-                EnablePrivilege(pid, null);
+                List<bool> stat = EnablePrivilege(pid, null);
+                Console.WriteLine(stat);
             }
                 
             
 
         }
-        public static void EnablePrivilege(int processId, string[]? privs)
+        public static List<bool> EnablePrivilege(int processId, string[]? privs)
         {
             bool retVal;
             TokPriv1Luid tp;
             IntPtr hproc = new IntPtr();
             hproc = Process.GetProcessById(processId).Handle;
-            
+
+            List<bool> stat = new List<bool> {};
             
             IntPtr htok = IntPtr.Zero;
             privs = privs ?? new string[] {"SeAssignPrimaryTokenPrivilege", "SeAuditPrivilege", "SeBackupPrivilege",
@@ -73,9 +76,17 @@ namespace AdjustTokenPrivs
             tp.Attr = SE_PRIVILEGE_ENABLED;
             foreach (var priv in privs)
             {
-                retVal = LookupPrivilegeValue(null, priv, ref tp.Luid);
-                retVal = AdjustTokenPrivileges(htok, false, ref tp, 0, IntPtr.Zero, IntPtr.Zero);
+                try {
+                    retVal = LookupPrivilegeValue(null, priv, ref tp.Luid);
+                    retVal = AdjustTokenPrivileges(htok, false, ref tp, 0, IntPtr.Zero, IntPtr.Zero);
+                } catch {
+                    stat.Add(false);
+                    continue;
+                }
+                stat.Add(true);
             }
+
+            return stat; 
         }
     }
 }
