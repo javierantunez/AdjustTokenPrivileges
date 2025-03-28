@@ -30,11 +30,12 @@ namespace AdjustTokenPrivs
         static void Main(string[] args)
         {
             int pid;
+            
             // No parameters. Current Proccess 
             if (args == null || args.Length == 0)
             {
-             Console.WriteLine("You must supply the PID!");
-             return;
+                Console.WriteLine("You must supply the PID!");
+                return;
             }
             // PID as parameter
             else
@@ -44,10 +45,8 @@ namespace AdjustTokenPrivs
                 List<bool> stat = EnablePrivilege(pid, null);
                 Console.WriteLine(stat);
             }
-                
-            
-
         }
+        
         public static List<bool> EnablePrivilege(int processId, string[]? privs)
         {
             bool retVal;
@@ -71,18 +70,23 @@ namespace AdjustTokenPrivs
             "SeUndockPrivilege", "SeUnsolicitedInputPrivilege", "SeDelegateSessionUserImpersonatePrivilege"};
 
             retVal = OpenProcessToken(hproc, TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, ref htok);
+            
             tp.Count = 1;
             tp.Luid = 0;
             tp.Attr = SE_PRIVILEGE_ENABLED;
+            
             foreach (var priv in privs)
             {
-                try {
+                try 
+                {
                     retVal = LookupPrivilegeValue(null, priv, ref tp.Luid);
                     retVal = AdjustTokenPrivileges(htok, false, ref tp, 0, IntPtr.Zero, IntPtr.Zero);
-                } catch {
+                } catch 
+                {
                     stat.Add(false);
                     continue;
                 }
+                
                 stat.Add(true);
             }
 
