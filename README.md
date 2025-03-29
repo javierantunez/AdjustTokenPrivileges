@@ -25,5 +25,7 @@ $pid
 
 AdjustTokenprivileges.exe 1234
 
+After invocation, you will receive the list of succesfully enabled privileges.
+
 
 IMPORTANT NOTE: Adjusting the token enabling all privileges is NOT OPSEC safe. Adjust the code to the purposes of your specific use case.
