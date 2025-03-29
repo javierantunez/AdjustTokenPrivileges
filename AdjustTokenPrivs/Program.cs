@@ -30,32 +30,34 @@ namespace AdjustTokenPrivs
         static void Main(string[] args)
         {
             int pid;
+            
             // No parameters. Current Proccess 
             if (args == null || args.Length == 0)
             {
-             Console.WriteLine("You must supply the PID!");
+                Console.WriteLine("You must supply the PID!");
+                return;
             }
             // PID as parameter
             else
             {
                 pid = int.Parse(args[0]);
                 Console.WriteLine($"Parameter PID is {pid}");
-                EnablePrivilege(pid);
+                List<bool> stat = EnablePrivilege(pid, null);
+                Console.WriteLine(stat);
             }
-                
-            
-
         }
-        public static void EnablePrivilege(int processId)
+        
+        public static List<bool> EnablePrivilege(int processId, string[]? privs)
         {
             bool retVal;
             TokPriv1Luid tp;
             IntPtr hproc = new IntPtr();
             hproc = Process.GetProcessById(processId).Handle;
-            
+
+            List<bool> stat = new List<bool> {};
             
             IntPtr htok = IntPtr.Zero;
-            List<string> privs = new List<string>() {  "SeAssignPrimaryTokenPrivilege", "SeAuditPrivilege", "SeBackupPrivilege",
+            privs = privs ?? new string[] {"SeAssignPrimaryTokenPrivilege", "SeAuditPrivilege", "SeBackupPrivilege",
             "SeChangeNotifyPrivilege", "SeCreateGlobalPrivilege", "SeCreatePagefilePrivilege",
             "SeCreatePermanentPrivilege", "SeCreateSymbolicLinkPrivilege", "SeCreateTokenPrivilege",
             "SeDebugPrivilege", "SeEnableDelegationPrivilege", "SeImpersonatePrivilege", "SeIncreaseBasePriorityPrivilege",
@@ -65,17 +67,30 @@ namespace AdjustTokenPrivs
             "SeRestorePrivilege", "SeSecurityPrivilege", "SeShutdownPrivilege", "SeSyncAgentPrivilege",
             "SeSystemEnvironmentPrivilege", "SeSystemProfilePrivilege", "SeSystemtimePrivilege",
             "SeTakeOwnershipPrivilege", "SeTcbPrivilege", "SeTimeZonePrivilege", "SeTrustedCredManAccessPrivilege",
-            "SeUndockPrivilege", "SeUnsolicitedInputPrivilege", "SeDelegateSessionUserImpersonatePrivilege" };
+            "SeUndockPrivilege", "SeUnsolicitedInputPrivilege", "SeDelegateSessionUserImpersonatePrivilege"};
 
             retVal = OpenProcessToken(hproc, TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, ref htok);
+            
             tp.Count = 1;
             tp.Luid = 0;
             tp.Attr = SE_PRIVILEGE_ENABLED;
+            
             foreach (var priv in privs)
             {
-                retVal = LookupPrivilegeValue(null, priv, ref tp.Luid);
-                retVal = AdjustTokenPrivileges(htok, false, ref tp, 0, IntPtr.Zero, IntPtr.Zero);
+                try 
+                {
+                    retVal = LookupPrivilegeValue(null, priv, ref tp.Luid);
+                    retVal = AdjustTokenPrivileges(htok, false, ref tp, 0, IntPtr.Zero, IntPtr.Zero);
+                } catch 
+                {
+                    stat.Add(false);
+                    continue;
+                }
+                
+                stat.Add(true);
             }
+
+            return stat; 
         }
     }
 }
